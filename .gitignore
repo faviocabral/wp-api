@@ -2,3 +2,4 @@ session-bot-server
 node_modules
 .env 
 .wwebjs_auth
+.gitignore
