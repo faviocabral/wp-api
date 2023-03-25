@@ -1,5 +1,5 @@
 //conexion del orm 
-const knex = require('knex')({
+const knex = require("knex")({
     client: 'mssql',
     connection: {
       host : '192.168.10.160',
@@ -9,4 +9,5 @@ const knex = require('knex')({
       database : 'control'
     }
   });
-module.exports = knex 
+
+module.exports = knex

@@ -1,48 +1,106 @@
-const {  Buttons , List} = require('whatsapp-web.js');
+const {  Buttons , List} = require('whatsapp-web.js')
+const knex_pg = require('../db/postgres')
+var moment = require('moment'); // require
+
+//https://wachatbot.com/es/multiagente
+//https://whaticket.com/blog/como-enviar-mensajes-masivos-whatsapp-2023/
+//SELECT * FROM fichas WHERE fecha = '20230324' AND id_sucursal = 6 AND lower(nombre) NOT LIKE '%agendar%'
+//SELECT * FROM fichas WHERE whatsapp = 'SI' fecha = '2023-03-23' AND hora = '11:00' AND celular ='0981302793' 
+
 
 ////////////////////////////////
 // para enviar recordatorio al cliente 
 ////////////////////////////////////////////////////////////////
-const recordatorio = (client , cita )=>{
+const recordatorio = async(client, cita )=>{
 
-    let mensaje = new Buttons(
-        `Buenas tardes Sr/Sra. ${cita.cliente}
-        ✅Su cita se encuentra reservada 
-        🗓️ Día: ${cita.fecha}
-        ⏰ Horario: ${cita.hora}hs
-        📍 Taller: ${cita.ubicacion}
-        Le esperamos ❗️ `, //button body 
+    /////////////////////////////////////////////////
+    //consultar a la base y extraer 
+    console.log(cita)
+    let datos = await consultarCitas(cita)
+    console.log(datos)
+    let saludo = ( Number( moment().format('HH')) < 12 )?'Buenos dias':'Buenas tardes'
+    let clearNumber = `595${cita.celular.slice(-9)}@c.us`
+    console.log(clearNumber)
+    let mensaje = `*CALL CENTER GRUPO GARDEN*\n\n${saludo}, Sr/Sra. *${cita.cliente}* \n✅Su cita se encuentra reservada\n🗓️ *Día:* ${cita.fecha}\n⏰ *Hora:* ${cita.hora}hs\n🏣 *Taller:* ${cita.taller}\n🚩 *Direccion:* ${cita.direccion}\n📍 *Ubicacion:* ${cita.ubicacion}\nLe esperamos en nuestros Locales❗️ ` //button body 
+
+    /*let mensaje = new Buttons(
+        `Buenas tardes Sr/Sra. ${cita.cliente}\n✅Su cita se encuentra reservada\n🗓️ Día: ${cita.fecha}\n⏰ Horario: ${cita.hora}hs\n📍 Taller: ${cita.ubicacion}\nLe esperamos ❗️ `, //button body 
                         [
                             {id: 'cancelAgenda', body:'❌ Cancelar!'},
-                            {id: 'okAgenda', body:'✔️ Confirmar!'},
+                            {id: `okAgenda`, body:'✔️ Confirmar!'},
                         ],
                         ' 📆 AGENDA',
                         'Opciones: '
             );
-    client.sendMessage( `595${cita.telefono}@c.us` , mensaje )
+            */
+    client.sendMessage( clearNumber , mensaje ).then(async (msg )=>{
+      //console.log(msg) para ver el mensaje que se envio.... al cliente 
+      ////////////////////////////////////////////////////////////////////
+      // actualizar la agenda que fue notificado el cliente por whatsapp!
+      try {
+        console.log('se envio correctamente al cliente el manesaje confirmacion !!')
+        await knex_pg('fichas')
+              .where('fecha', cita.fecha)
+              .andWhere('hora', cita.hora)
+              .andWhere('celular', cita.celular)
+              .update({whatsapp: 'SI'})
+
+      } catch (error) {
+        console.log('hubo un error en la actualizacion de la agenda para la notifiacion ', error)
+      }
+    })
+    .catch(err => console.log('hubo un error en el envio de datos al cliente ', err))
 };
+
 
 ////////////////////////////////
 // para resonder al cliente segun las opciones
 ////////////////////////////////////////////////////////////////
 
-const respuestas = (client , msg , cita  )=>{
+const consultarCitas = async(cita) => {
+  let list = []
+  try {
+    await knex_pg
+    .select("*")
+    .from("fichas")
+    .where("fecha", cita.fecha)
+    .andWhere("hora", cita.hora)
+    .andWhere("celular", cita.celular)
+    .andWhere("estado", '1')
+    .then(rows => {
+      //console.log(rows)
+      list = rows 
+    }); 
 
+  } catch (error) {
+    console.log('ocurrio un error en la consulta posgres ', error )
+  }
+  return list 
+
+}
+
+const respuestas = (client , msg  )=>{
     //si responde con un botton 
     if(msg.type === 'buttons_response'){
 
-        let res = '' 
         switch (msg.selectedButtonId) {
     
             //respueta cuando confirma agenda el cliente la cita 
             case 'okAgenda':
+
+              /*
+                CONSULTAR A LA BASE DE CALLCENTER .... 
+              */
+                //consultarCitas()
                 let res =  
                 `Buenas tardes Sr/Sra. ${msg._data.notifyName || 'Juan Perez'}
                 ✅Su cita se encuentra CONFIRMADA!! 
-                🗓️ Día: ${cita.fecha || '20/03/2023'} 
-                ⏰ Horario: ${cita.hora || '09:30'}hs
-                📍 Taller: ${cita.ubicacion || 'https://goo.gl/maps/KeDz5FATfjm3gLub9'}
+                🗓️ Día: ${ '20/03/2023'} 
+                ⏰ Horario: ${ '09:30'}hs
+                📍 Taller: ${ 'https://goo.gl/maps/KeDz5FATfjm3gLub9'}
                 Le esperamos❗️`
+                console.log(msg.from )
+                console.log(res )
                 client.sendMessage(msg.from, res)
                 break;
     
@@ -141,4 +199,4 @@ const respuestas = (client , msg , cita  )=>{
 
 }
 
-module.exports = {recordatorio , respuestas}
+module.exports = {recordatorio , respuestas, consultarCitas}
