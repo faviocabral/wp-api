@@ -19,6 +19,7 @@ app.use(bodyParser.json())
 const agenda = require('./helpers/callcenter')
 const servicio = require('./helpers/servicio')
 const repuesto = require('./helpers/repuesto')
+const rrhh = require('./helpers/rrhh')
 
 // Use the saved values
 const client = new Client({
@@ -51,11 +52,22 @@ client.on('message', msg => {
     agenda.recordatorio(client, {fecha:'13/03/2023', hora:'09:30', ubicacion: 'https://goo.gl/maps/KeDz5FATfjm3gLub9', cliente: msg._data.notifyName || '' , telefono: msg.from })
   }
 
+  //consulta rrhh
+  if (msg.body.toLowerCase() == 'rrhh'){
+    client.sendMessage( msg.from, `*RRHH CONSULTA NOMINAS*\n\n* Para buscar una nomina ingrese # mas el ci del empleado ej: #123456\n Gracias!` )
+    //rrhh.verEmpleado(client , msg)
+  }
+
   //listener 
   //agenda.consultarCitas()
   agenda.respuestas(client, msg )
   servicio.respuestaGarantia(client, msg )
   repuesto.respuesta(client, msg )
+
+  const regexp = new RegExp('^#[0-9]+$') // si empieza con un hashtag verificamos
+  if(regexp.test(msg.body.replace(' ', ''))){
+    rrhh.respuesta(client, msg)
+  }
 
 });
 
@@ -125,6 +137,14 @@ app.get('/chat', async (req, res)=>{
       res.status(200).json(msg)
     })
   })
+})
+
+app.get('/rrhh', async (req, res)=>{
+  var documento = req.query.documento
+
+  const lista = await rrhh.consultarLista(documento)
+  res.status(200).json(lista)
+
 })
 
 app.listen(port, () => {

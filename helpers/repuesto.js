@@ -148,7 +148,7 @@ const respuesta = (client , msg )=>{
                       console.log('este es el codigo que el cliente esta buscando ', msg[1].body)
                       await knex.select()
                       .from('vListaRepuesto_wp')
-                      .whereIn('codigo', msg[1].body.replaceAll(' ', '').replaceAll('\n', '').split(','))
+                      .whereIn('codigo', msg[1].body.replace(' ', '').replace('\n', '').split(','))
                       .then((rows)=>{
                         res = `📋 *DATOS DEL ARTICULO*\n` 
                         rows.forEach((item , index) => {
