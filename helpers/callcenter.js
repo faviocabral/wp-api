@@ -39,7 +39,7 @@ const recordatorio = async(client, cita )=>{
       // actualizar la agenda que fue notificado el cliente por whatsapp!
       try {
         console.log('se envio correctamente al cliente el manesaje confirmacion !!')
-        await knex_pg('fichas')
+        await knex_pg(process.env.TABLA_AGENDA)
               .where('fecha', cita.fecha)
               .andWhere('hora', cita.hora)
               .andWhere('celular', cita.celular)
@@ -62,7 +62,7 @@ const consultarCitas = async(cita) => {
   try {
     await knex_pg
     .select("*")
-    .from("fichas")
+    .from(process.env.TABLA_AGENDA)
     .where("fecha", cita.fecha)
     .andWhere("hora", cita.hora)
     .andWhere("celular", cita.celular)
