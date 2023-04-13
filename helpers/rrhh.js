@@ -19,7 +19,7 @@ const consultarLista = async(documento) => {
     try {
       await knex
       .select("*")
-      .from("base_bi.dbo.nominaGasa")
+      .from(process.env.TABLA_NOMINA)
       .where("codigo", documento)
       .then(rows => {
         //console.log(rows)

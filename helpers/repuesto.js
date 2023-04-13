@@ -82,7 +82,7 @@ const respuesta = (client , msg )=>{
                       console.log(msg) 
                       console.log('este es el codigo que el cliente esta buscando ', msg[1].body)
                       await knex.select()
-                      .from('vListaRepuesto_wp')
+                      .from(process.env.VISTA_REPUESTO)
                       .where('codigo', msg[1].body)
                       .then((rows)=>{
                         console.log(res)
@@ -147,7 +147,7 @@ const respuesta = (client , msg )=>{
                       console.log(msg) 
                       console.log('este es el codigo que el cliente esta buscando ', msg[1].body)
                       await knex.select()
-                      .from('vListaRepuesto_wp')
+                      .from(process.env.VISTA_REPUESTO)
                       .whereIn('codigo', msg[1].body.replace(' ', '').replace('\n', '').split(','))
                       .then((rows)=>{
                         res = `📋 *DATOS DEL ARTICULO*\n` 
