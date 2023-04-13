@@ -2,11 +2,11 @@
 const knex_pg = require("knex")({
     client: 'pg',
     connection: {
-      host : '192.168.10.54',
+      host : process.env.PG_HOST,
       //port : 5432,
-      user : 'postgres',
-      password : 'kernel1979',
-      database : 'reservas_stellantis'
+      user : process.env.PG_USER,
+      password : process.env.PG_PASSWORD,
+      database : process.env.PG_DATABASE
     }
   });
 

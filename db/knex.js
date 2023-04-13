@@ -2,11 +2,11 @@
 const knex = require("knex")({
     client: 'mssql',
     connection: {
-      host : '192.168.10.160',
-      port : 1433,
-      user : 'sa',
-      password : 'Sqlservices*',
-      database : 'control'
+      host : process.env.MSQL_HOST ,
+      port : process.env.MSQL_PORT ,
+      user : process.env.MSQL_USER,
+      password : process.env.MSQL_PASSWORD,
+      database : process.env.MSQL_DATABASE
     }
   });
 

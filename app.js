@@ -7,6 +7,7 @@ const { Client,LocalAuth , Buttons , List} = require('whatsapp-web.js');
 const {moment } = require('moment');
 var cors = require('cors')
 var bodyParser = require('body-parser')
+require('dotenv').config()
 
 app.use(cors())
 
